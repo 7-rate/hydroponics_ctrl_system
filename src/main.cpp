@@ -15,39 +15,17 @@
 // Touch Controller Pin
 #define PIN_TOUCH_CS 6 // GPIO8 for Touch Controller CS
 
-// ディスプレイとタッチスクリーンのインスタンスを作成
 Adafruit_ILI9341 display = Adafruit_ILI9341( PIN_CS, PIN_DC, PIN_RST );
 XPT2046_Touchscreen touch( PIN_TOUCH_CS );
 
-// お絵かき用の変数
 uint16_t lastX, lastY;
 bool penDown = false;
 uint16_t currentColor = ILI9341_RED; // 初期色：赤
 
-// 使用可能な色のパレット
-const uint16_t colorPalette[] = { ILI9341_RED,     ILI9341_GREEN, ILI9341_BLUE,  ILI9341_YELLOW,
-                                  ILI9341_MAGENTA, ILI9341_CYAN,  ILI9341_WHITE, ILI9341_BLACK };
-const uint8_t paletteSize = sizeof( colorPalette ) / sizeof( colorPalette[0] );
-
 // パレットボタンのY座標
 #define PALETTE_Y 10
 
-void drawColorPalette() {
-    // 画面上部に色パレットを描画
-    for ( uint8_t i = 0; i < paletteSize; i++ ) {
-        uint16_t buttonX = 30 + ( i * 30 );
-        display.fillRect( buttonX, PALETTE_Y, 20, 20, colorPalette[i] );
-        display.drawRect( buttonX, PALETTE_Y, 20, 20, ILI9341_WHITE );
-    }
-
-    // 現在選択されている色を示す
-    for ( uint8_t i = 0; i < paletteSize; i++ ) {
-        uint16_t buttonX = 30 + ( i * 30 );
-        if ( colorPalette[i] == currentColor ) {
-            display.drawRect( buttonX - 2, PALETTE_Y - 2, 24, 24, ILI9341_WHITE );
-        }
-    }
-
+void draw_clear_button() {
     // 消しゴムボタン (黒)
     display.fillRect( 270, PALETTE_Y, 40, 20, ILI9341_BLACK );
     display.drawRect( 270, PALETTE_Y, 40, 20, ILI9341_WHITE );
@@ -87,7 +65,7 @@ void setup() {
     display.println( "Select a color from palette" );
 
     // 色パレットの描画
-    drawColorPalette();
+    draw_clear_button();
 
     Serial.println( "Setup complete" );
     delay( 2000 );
@@ -111,25 +89,11 @@ void loop() {
         Serial.print( ", y=" );
         Serial.println( y );
 
-        // 色パレットエリアのタッチ判定
-        if ( y < 40 ) {
-            // パレットの色選択
-            for ( uint8_t i = 0; i < paletteSize; i++ ) {
-                uint16_t buttonX = 30 + ( i * 30 );
-                if ( x >= buttonX && x <= buttonX + 20 && y >= PALETTE_Y && y <= PALETTE_Y + 20 ) {
-                    currentColor = colorPalette[i];
-                    drawColorPalette(); // パレット再描画
-                    delay( 100 );
-                    return;
-                }
-            }
-
-            // クリアボタンの判定
-            if ( x >= 270 && x <= 310 && y >= PALETTE_Y && y <= PALETTE_Y + 20 ) {
-                display.fillRect( 0, 40, display.width(), display.height() - 40, ILI9341_BLACK );
-                delay( 100 );
-                return;
-            }
+        // クリアボタンの判定
+        if ( x >= 270 && x <= 310 && y >= PALETTE_Y && y <= PALETTE_Y + 20 ) {
+            display.fillRect( 0, 40, display.width(), display.height() - 40, ILI9341_BLACK );
+            delay( 100 );
+            return;
         } else {
             // お絵かきエリアでの描画
             if ( !penDown ) {
