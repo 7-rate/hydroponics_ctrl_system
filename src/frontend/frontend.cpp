@@ -3,6 +3,7 @@
  */
 #include <Arduino.h>
 #include <SPI.h>
+#include <Fonts/FreeSans9pt7b.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_ILI9341.h>
 #include <XPT2046_Touchscreen.h>
@@ -11,6 +12,7 @@
 
 // note:
 // 画面サイズ 320 x 240
+// タッチスクリーンは 0~4096 x 0~4096 で取得される
 
 /******************************************************************/
 /* Definitions                                                    */
@@ -29,16 +31,15 @@
 // Touch Controller Pin
 #define PIN_TOUCH_CS 6 // GPIO8 for Touch Controller CS
 
-// パレットボタンのY座標
-#define PALETTE_Y 10
-
 class toggle_button {
   public:
     toggle_button( const char* label, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t on_color, uint16_t off_color );
     void draw( Adafruit_ILI9341& display );
-    void set_color( uint16_t color );
-    void set_state( bool state ) {
-        this->state = state;
+    bool is_touched( int16_t touch_x, int16_t touch_y ) {
+        return ( touch_x >= x && touch_x < x + w && touch_y >= y && touch_y < y + h );
+    }
+    void toggle_state() {
+        state = !state;
     }
 
   private:
@@ -56,6 +57,13 @@ XPT2046_Touchscreen touch( PIN_TOUCH_CS );
 
 static toggle_button button_prev_screen( "<", 0, 0, 30, 240, ILI9341_LIGHTGREY, ILI9341_LIGHTGREY );
 static toggle_button button_next_screen( ">", 290, 0, 30, 240, ILI9341_LIGHTGREY, ILI9341_LIGHTGREY );
+
+static toggle_button button_ac_out1( "AC_OUT1", 35, 35, 123, 97, ILI9341_MAGENTA, ILI9341_LIGHTGREY );
+static toggle_button button_ac_out2( "AC_OUT2", 35, 137, 123, 97, ILI9341_MAGENTA, ILI9341_LIGHTGREY );
+static toggle_button button_dc12v_out1( "DC12V_OUT1", 162, 35, 123, 46, ILI9341_ORANGE, ILI9341_LIGHTGREY );
+static toggle_button button_dc12v_out2( "DC12V_OUT2", 162, 85, 123, 46, ILI9341_ORANGE, ILI9341_LIGHTGREY );
+static toggle_button button_dc5v_out1( "DC5V_OUT1", 162, 137, 123, 46, ILI9341_PURPLE, ILI9341_LIGHTGREY );
+static toggle_button button_dc5v_out2( "DC5V_OUT2", 162, 188, 123, 46, ILI9341_PURPLE, ILI9341_LIGHTGREY );
 
 /***********************************/
 /* Global Variables                */
@@ -81,9 +89,8 @@ toggle_button::toggle_button( const char* label, uint16_t x, uint16_t y, uint16_
 void toggle_button::draw( Adafruit_ILI9341& display ) {
     // ボタンの描画
     display.fillRect( x, y, w, h, state ? on_color : off_color );
-    display.setCursor( ( x + w / 2 ) - ( strlen( label ) * 6 / 2 ), ( y + h / 2 ) );
+    display.setCursor( ( x + w / 2 ) - ( strlen( label ) * 12 / 2 ), ( y + h / 2 ) + 4 );
     display.setTextColor( ILI9341_BLACK );
-    display.setTextSize( 2 );
     display.print( label );
 }
 
@@ -92,22 +99,53 @@ void toggle_button::draw( Adafruit_ILI9341& display ) {
 /***********************************/
 static void draw_title( const char* title ) {
     display.fillRect( 30, 0, 260, 30, ILI9341_DARKGREY );
-    display.setCursor( ( 30 + 260 / 2 ) - ( strlen( title ) * 8 / 2 ), 30 / 2 - 8 );
+    display.setCursor( ( 30 + 260 / 2 ) - ( strlen( title ) * 9 / 2 ), 30 / 2 + 4 );
     display.setTextColor( ILI9341_BLACK );
-    display.setTextSize( 2 );
     display.println( title );
 }
 
 static int screen_no = 0;
 static void reflesh_screen() {
-    display.fillScreen( ILI9341_WHITE );
+    TS_Point point = touch.getPoint();
+    int16_t touch_x = point.x;
+    int16_t touch_y = point.y;
+
+    Serial.printf( "Touch: %d, %d\r\n", touch_x, touch_y );
     switch ( screen_no ) {
     case 0:
         draw_title( "Manual Control" );
         button_prev_screen.draw( display );
         button_next_screen.draw( display );
+
+        if ( button_ac_out1.is_touched( touch_x, touch_y ) ) {
+            button_ac_out1.toggle_state();
+            button_ac_out1.draw( display );
+        }
+        if ( button_ac_out2.is_touched( touch_x, touch_y ) ) {
+            button_ac_out2.toggle_state();
+            button_ac_out2.draw( display );
+        }
+        if ( button_dc12v_out1.is_touched( touch_x, touch_y ) ) {
+            button_dc12v_out1.toggle_state();
+            button_dc12v_out1.draw( display );
+        }
+        if ( button_dc12v_out2.is_touched( touch_x, touch_y ) ) {
+            button_dc12v_out2.toggle_state();
+            button_dc12v_out2.draw( display );
+        }
+        if ( button_dc5v_out1.is_touched( touch_x, touch_y ) ) {
+            button_dc5v_out1.toggle_state();
+            button_dc5v_out1.draw( display );
+        }
+        if ( button_dc5v_out2.is_touched( touch_x, touch_y ) ) {
+            button_dc5v_out2.toggle_state();
+            button_dc5v_out2.draw( display );
+        }
         break;
     case 1:
+        break;
+    case 99:
+        draw_title( "Touch Calibration" );
         break;
     default:
         break;
@@ -130,9 +168,11 @@ void frontend_init() {
     display.fillScreen( ILI9341_BLACK );
     display.setCursor( 20, 50 );
     display.setTextColor( ILI9341_WHITE );
-    display.setTextSize( 2 );
-    display.println( "Hello!" );
-    delay( 2000 );
+    display.setFont( &FreeSans9pt7b );
+    display.setTextSize( 1 );
+
+    display.fillScreen( ILI9341_WHITE );
+    reflesh_screen();
 }
 
 void frontend_task() {
