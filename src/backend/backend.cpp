@@ -1,11 +1,9 @@
+/*
+ * 概要：バックエンド制御
+ */
 #include <Arduino.h>
-#include <SPI.h>
-#include <Adafruit_GFX.h>
-#include <Adafruit_ILI9341.h>
-#include <XPT2046_Touchscreen.h>
+#include "controller.h"
 
-#include "frontend/frontend.h"
-#include "backend/backend.h"
 /******************************************************************/
 /* Definitions                                                    */
 /******************************************************************/
@@ -35,12 +33,10 @@
 /***********************************/
 /* Global functions                */
 /***********************************/
-void setup() {
-    frontend_init();
-    backend_init();
+void backend_init() {
+    Serial.begin( 115200 );
+    controller_init();
 }
-
-void loop() {
-    frontend_task();
-    backend_task();
+void backend_task() {
+    controller_task();
 }
