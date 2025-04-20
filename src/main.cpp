@@ -36,6 +36,7 @@
 /* Global functions                */
 /***********************************/
 void setup() {
+    Serial.begin( 115200 );
     frontend_init();
     backend_init();
 }

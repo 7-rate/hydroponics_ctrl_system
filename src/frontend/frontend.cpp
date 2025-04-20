@@ -161,22 +161,22 @@ static void reflesh_screen() {
             if ( button_dc12v_out1.is_touched( touch_x, touch_y ) ) {
                 button_dc12v_out1.toggle_state();
                 button_dc12v_out1.draw( display );
-                controller_set_DC12V_OUT1( button_dc12v_out1.state ? 255 : 0 );
+                controller_set_DC12V_OUT1( button_dc12v_out1.state ? DC_ON : DC_OFF );
             }
             if ( button_dc12v_out2.is_touched( touch_x, touch_y ) ) {
                 button_dc12v_out2.toggle_state();
                 button_dc12v_out2.draw( display );
-                controller_set_DC12V_OUT2( button_dc12v_out2.state ? 255 : 0 );
+                controller_set_DC12V_OUT2( button_dc12v_out2.state ? DC_ON : DC_OFF );
             }
             if ( button_dc5v_out1.is_touched( touch_x, touch_y ) ) {
                 button_dc5v_out1.toggle_state();
                 button_dc5v_out1.draw( display );
-                controller_set_DC5V_OUT1( button_dc5v_out1.state ? 255 : 0 );
+                controller_set_DC5V_OUT1( button_dc5v_out1.state ? DC_ON : DC_OFF );
             }
             if ( button_dc5v_out2.is_touched( touch_x, touch_y ) ) {
                 button_dc5v_out2.toggle_state();
                 button_dc5v_out2.draw( display );
-                controller_set_DC5V_OUT2( button_dc5v_out2.state ? 255 : 0 );
+                controller_set_DC5V_OUT2( button_dc5v_out2.state ? DC_ON : DC_OFF );
             }
         }
         break;
@@ -186,18 +186,22 @@ static void reflesh_screen() {
                 display.fillCircle( 10, 10, 5, ILI9341_RED );
                 display.setCursor( 20, 10 );
                 display.setTextColor( ILI9341_BLACK );
+                delay( 500 );
             } else if ( calibration_step == 1 ) {
                 display.fillCircle( 310, 10, 5, ILI9341_RED );
                 display.setCursor( 220, 10 );
                 display.setTextColor( ILI9341_BLACK );
+                delay( 500 );
             } else if ( calibration_step == 2 ) {
                 display.fillCircle( 10, 230, 5, ILI9341_RED );
                 display.setCursor( 20, 210 );
                 display.setTextColor( ILI9341_BLACK );
+                delay( 500 );
             } else {
                 display.fillCircle( 310, 230, 5, ILI9341_RED );
                 display.setCursor( 220, 210 );
                 display.setTextColor( ILI9341_BLACK );
+                delay( 500 );
             }
             if ( touch.touched() ) {
                 // 座標を記録
@@ -230,8 +234,14 @@ void frontend_init() {
     SPI.setRX( PIN_MISO );
     SPI.setTX( PIN_MOSI );
     SPI.setSCK( PIN_SCK );
+
     display.begin();
     display.setRotation( 3 );
+    display.fillScreen( ILI9341_BLACK );
+    display.setCursor( 20, 50 );
+    display.setTextColor( ILI9341_WHITE );
+    display.setFont( &FreeSans9pt7b );
+    display.setTextSize( 1 );
     touch.begin();
     touch.setRotation( 1 );
 
@@ -245,22 +255,18 @@ void frontend_init() {
 
     // タッチされたまま起動された場合はタッチスクリーンのキャリブレーションモードに入る
     if ( touch.touched() ) {
-        screen_no = 99;
-        calibration_mode = true;
+        display.setCursor( 0, 160 );
+        display.println( " Entering Calibration Mode... " );
+
         // 離されるまで待機
         while ( touch.touched() ) {
             delay( 10 );
         }
         display.fillScreen( ILI9341_WHITE );
         draw_title( "Touch Calibration" );
+        screen_no = 99;
+        calibration_mode = true;
     }
-
-    // 初期画面表示
-    display.fillScreen( ILI9341_BLACK );
-    display.setCursor( 20, 50 );
-    display.setTextColor( ILI9341_WHITE );
-    display.setFont( &FreeSans9pt7b );
-    display.setTextSize( 1 );
 }
 
 void frontend_task() {

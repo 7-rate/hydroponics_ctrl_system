@@ -3,6 +3,7 @@
  */
 #include <Arduino.h>
 #include "controller.h"
+#include "scheduler.h"
 
 /******************************************************************/
 /* Definitions                                                    */
@@ -34,9 +35,10 @@
 /* Global functions                */
 /***********************************/
 void backend_init() {
-    Serial.begin( 115200 );
+    // scheduler_init();
     controller_init();
 }
 void backend_task() {
+    // scheduler_task();
     controller_task();
 }

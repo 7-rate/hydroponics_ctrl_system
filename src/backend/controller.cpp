@@ -59,22 +59,74 @@ void controller_set_AC_OUT2( ac_state_t state ) {
     digitalWrite( AC_OUT2, ac_pin_status( AC_OUT2_state ) );
 }
 
-void controller_set_DC12V_OUT1( int value ) {
+void controller_set_DC12V_OUT1( dc_state_t state ) {
+    int value = 0;
+    switch ( state ) {
+    case DC_ON:
+        value = 255;
+        break;
+    case DC_F1_FLUCT:
+        value = 127; // TODO 1/f揺らぎの実装
+        break;
+    case DC_OFF:
+    default:
+        value = 0;
+        break;
+    }
     DC12V_OUT1_state = value;
     analogWrite( DC12V_OUT1, DC12V_OUT1_state );
 }
 
-void controller_set_DC12V_OUT2( int value ) {
+void controller_set_DC12V_OUT2( dc_state_t state ) {
+    int value = 0;
+    switch ( state ) {
+    case DC_ON:
+        value = 255;
+        break;
+    case DC_F1_FLUCT:
+        value = 127; // TODO 1/f揺らぎの実装
+        break;
+    case DC_OFF:
+    default:
+        value = 0;
+        break;
+    }
     DC12V_OUT2_state = value;
     analogWrite( DC12V_OUT2, DC12V_OUT2_state );
 }
 
-void controller_set_DC5V_OUT1( int value ) {
+void controller_set_DC5V_OUT1( dc_state_t state ) {
+    int value = 0;
+    switch ( state ) {
+    case DC_ON:
+        value = 255;
+        break;
+    case DC_F1_FLUCT:
+        value = 127; // TODO 1/f揺らぎの実装
+        break;
+    case DC_OFF:
+    default:
+        value = 0;
+        break;
+    }
     DC5V_OUT1_state = value;
     analogWrite( DC5V_OUT1, DC5V_OUT1_state );
 }
 
-void controller_set_DC5V_OUT2( int value ) {
+void controller_set_DC5V_OUT2( dc_state_t state ) {
+    int value = 0;
+    switch ( state ) {
+    case DC_ON:
+        value = 255;
+        break;
+    case DC_F1_FLUCT:
+        value = 127; // TODO 1/f揺らぎの実装
+        break;
+    case DC_OFF:
+    default:
+        value = 0;
+        break;
+    }
     DC5V_OUT2_state = value;
     analogWrite( DC5V_OUT2, DC5V_OUT2_state );
 }
